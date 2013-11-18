@@ -2,7 +2,8 @@ casper = require('casper').create(
   imageLoad: false
 )
 
-base = 'http://www.taz.de/1/archiv/digitaz/'
+tazhome = 'http://www.taz.de/1/archiv/digitaz/'
+base = "http://www.taz.de"
 
 toc = 'ul.digitaz'
 
@@ -28,20 +29,30 @@ getBlocks = ->
 
 getArticleLinks = ->
   links = document.querySelectorAll "h3 > a"
-  Array::map.call links, (link) -> link.innerHTML
+  Array::map.call links, (link) -> link.getAttribute "href"
 
 processPage = ->
   sections = @evaluate getSections
   @each sections, (self, link) ->
-    fullUrl = "http://taz.de" + link
+    fullUrl = base + link
     @thenOpen fullUrl, ->
       @echo "Found #{fullUrl}"
       alinks = @evaluate getArticleLinks
       @each alinks, (s, l) ->
-        @echo "\t#{l}"
+        articleurl = "http://taz.de/" + l
+        @echo "Article url: #{articleurl}"
+        @thenOpen articleurl, ->
+          headline = @evaluate getHeadline
+          subhead = @evaluate getSubhead
+          blocks = @evaluate getBlocks
+          @echo headline unless null
+          @echo subhead unless null
+          @each blocks, (x, y) ->
+            @echo y unless null
 
 
-casper.start base
+
+casper.start tazhome
 
 casper.then ->
   processPage.call @
