@@ -5,63 +5,60 @@ casper = require('casper').create(
 tazhome = 'http://www.taz.de/1/archiv/digitaz/'
 base = "http://www.taz.de"
 
-toc = 'ul.digitaz'
 
-getSections = ->
+getCategory = ->
+  document.querySelector('ul.digitaz li.red').innerText
+
+getCategoryLinks = ->
   sections = document.querySelectorAll('ul.digitaz li a')
   Array::map.call sections, (s) -> s.getAttribute "href"
-
 
 url = casper.cli.get('url')
 
 getHeadline = ->
-  document.querySelector('div.sectbody > h1').innerHTML
+  document.querySelector('div.sectbody > h1').innerText.replace /\n/, ""
 
 getIntro = ->
-  document.querySelector('div.sectbody > p.intro').innerHTML
+  document.querySelector('div.sectbody > p.intro').innerText.replace /\n/, ""
 
 getSubhead = ->
-  document.querySelector('div.sectbody > h5').innerHTML
+  document.querySelector('div.sectbody > h5').innerText
 
 getBlocks = ->
   blocks = document.querySelectorAll "div.sectbody p.article"
-  Array::map.call blocks,  (a) -> a.innerHTML
+  Array::map.call blocks,  (a) -> a.innerText
 
 getArticleLinks = ->
   links = document.querySelectorAll "h3 > a"
   Array::map.call links, (link) -> link.getAttribute "href"
 
 processPage = ->
-  sections = @evaluate getSections
+  sections = @evaluate getCategoryLinks
   @each sections, (self, link) ->
     fullUrl = base + link
     @thenOpen fullUrl, ->
-      @echo "Found #{fullUrl}"
+      category = @evaluate getCategory
+      @echo "## #{category}\n" 
       alinks = @evaluate getArticleLinks
       @each alinks, (s, l) ->
         articleurl = "http://taz.de/" + l
-        @echo "Article url: #{articleurl}"
         @thenOpen articleurl, ->
           headline = @evaluate getHeadline
           subhead = @evaluate getSubhead
           blocks = @evaluate getBlocks
-          @echo headline unless null
-          @echo subhead unless null
+          @echo  "### " + headline + "\n" if headline
+          @echo "\*" + subhead + "\*\n" if subhead
           @each blocks, (x, y) ->
-            @echo y unless null
-
+            @echo y + "\n" if y
 
 
 casper.start tazhome
 
 casper.then ->
-  processPage.call @
+  @echo "# taz - die tageszeitung\n\n"
 
-###
 casper.then ->
-  sections = @evaluate getSections
-  @echo x for x in sections
-###
+  processPage.call @
 
 casper.run()
 
