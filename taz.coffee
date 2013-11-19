@@ -6,6 +6,8 @@ tazhome = 'http://www.taz.de/1/archiv/digitaz/'
 base = "http://www.taz.de"
 
 
+getDate = ->
+  document.querySelector('div#date').innerText
 getCategory = ->
   document.querySelector('ul.digitaz li.red').innerText
 
@@ -16,10 +18,10 @@ getCategoryLinks = ->
 url = casper.cli.get('url')
 
 getHeadline = ->
-  document.querySelector('div.sectbody > h1').innerText.replace /\n/, ""
+  document.querySelector('div.sectbody > h1').innerText
 
 getIntro = ->
-  document.querySelector('div.sectbody > p.intro').innerText.replace /\n/, ""
+  document.querySelector('div.sectbody > p.intro').innerText
 
 getSubhead = ->
   document.querySelector('div.sectbody > h5').innerText
